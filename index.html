@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 Calculadora de Eficiencia de Radiadores</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1E3A8A;
+            --secondary-color: #3B82F6;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --light-bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text-color: #1F2937;
+            --border-radius: 10px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .app-container {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--light-bg);
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #E5E7EB;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1E40AF;
+            transform: translateY(-2px);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            color: white;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: var(--text-color);
+        }
+
+        .info-box {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .reference-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .reference-table th, .reference-table td {
+            border: 1px solid #E5E7EB;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .reference-table th {
+            background-color: var(--light-bg);
+            font-weight: 600;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                text-align: center;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: white;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Calculadora de Eficiencia de Radiadores</h1>
+            <p>Herramienta profesional para análisis termodinámico de sistemas de refrigeración</p>
+        </div>
+
+        <div class="app-container">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('calculator')">📊 Calculadora</button>
+                <button class="tab" onclick="switchTab('results')">📈 Resultados</button>
+                <button class="tab" onclick="switchTab('theory')">🔍 Fundamentos</button>
+                <button class="tab" onclick="switchTab('references')">📚 Referencias</button>
+            </div>
+
+            <!-- Pestaña Calculadora -->
+            <div id="calculator" class="tab-content active">
+                <h2 class="section-title">Configuración del Análisis</h2>
+                
+                <div class="form-grid">
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color);">🚗 Características del Vehículo</h3>
+                        
+                        <div class="form-group">
+                            <label for="cilindros">Número de cilindros</label>
+                            <select id="cilindros" class="form-control">
+                                <option value="4">4 cilindros</option>
+                                <option value="6">6 cilindros</option>
+                                <option value="8">8 cilindros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="anio">Año del modelo del auto (≥1960)</label>
+                            <input type="number" id="anio" class="form-control" min="1960" max="2030" value="2020">
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color);">🌡️ Condiciones de Operación</h3>
+                        
+                        <div class="form-group">
+                            <label for="ta">Temperatura ambiente Ta (°C)</label>
+                            <input type="number" id="ta" class="form-control" min="-50" max="60" step="0.1" value="25.0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tif">Temperatura de entrada Tif (°C)</label>
+                            <input type="number" id="tif" class="form-control" min="0" max="150" step="0.1" value="95.0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tsf">Temperatura de salida Tsf (°C)</label>
+                            <input type="number" id="tsf" class="form-control" min="0" max="150" step="0.1" value="85.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h4>📋 Tabla de Referencias por Década</h4>
+                    <table class="reference-table">
+                        <thead>
+                            <tr>
+                                <th>Década</th>
+                                <th>4 Cilindros</th>
+                                <th>6 Cilindros</th>
+                                <th>8 Cilindros</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1960-1969</td>
+                                <td>25.0%</td>
+                                <td>40.0%</td>
+                                <td>35.0%</td>
+                            </tr>
+                            <tr>
+                                <td>1970-1979</td>
+                                <td>30.0%</td>
+                                <td>45.0%</td>
+                                <td>25.0%</td>
+                            </tr>
+                            <tr>
+                                <td>1980-1989</td>
+                                <td>50.0%</td>
+                                <td>30.0%</td>
+                                <td>20.0%</td>
+                            </tr>
+                            <tr>
+                                <td>1990-1999</td>
+                                <td>60.0%</td>
+                                <td>25.0%</td>
+                                <td>15.0%</td>
+                            </tr>
+                            <tr>
+                                <td>2000-2009</td>
+                                <td>65.0%</td>
+                                <td>20.0%</td>
+                                <td>15.0%</td>
+                            </tr>
+                            <tr>
+                                <td>2010+</td>
+                                <td>40.0%</td>
+                                <td>47.5%</td>
+                                <td>57.5%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <button class="btn btn-primary" onclick="calcularEficiencia()" style="width: 100%;">
+                    🎯 Calcular Eficiencia
+                </button>
+            </div>
+
+            <!-- Pestaña Resultados -->
+            <div id="results" class="tab-content">
+                <h2 class="section-title">Resultados del Análisis</h2>
+                
+                <div id="results-placeholder" class="info-box">
+                    <p>Realiza primero el cálculo en la pestaña "Calculadora" para ver los resultados.</p>
+                </div>
+
+                <div id="results-content" style="display: none;">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="eficiencia-value">0%</div>
+                            <div class="metric-label">Eficiencia Calculada</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="referencia-value">0%</div>
+                            <div class="metric-label">Eficiencia de Referencia</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="diferencia-value">0%</div>
+                            <div class="metric-label">Diferencia</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="gauge-chart"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="temperature-chart"></div>
+                    </div>
+
+                    <div id="diagnostico-alert" class="alert">
+                        <!-- Contenido dinámico del diagnóstico -->
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--primary-color);">📋 Detalles del Cálculo</h3>
+                            <div id="detalles-calculo" class="info-box">
+                                <!-- Detalles dinámicos -->
+                            </div>
+                        </div>
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--primary-color);">💡 Recomendaciones</h3>
+                            <div id="recomendaciones" class="info-box">
+                                <!-- Recomendaciones dinámicas -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pestaña Fundamentos -->
+            <div id="theory" class="tab-content">
+                <h2 class="section-title">Fundamentos de Transferencia de Calor</h2>
+                
+                <div class="two-columns">
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color);">🔬 Base Científica</h3>
+                        <div class="info-box">
+                            <h4>Fórmula Principal:</h4>
+                            <p><strong>R = (Tif - Tsf) / (Tif - Ta)</strong></p>
+                            
+                            <h4>Donde:</h4>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li><strong>R</strong>: Factor de eficiencia térmica</li>
+                                <li><strong>Tif</strong>: Temperatura de entrada (°C)</li>
+                                <li><strong>Tsf</strong>: Temperatura de salida (°C)</li>
+                                <li><strong>Ta</strong>: Temperatura ambiente (°C)</li>
+                            </ul>
+                            
+                            <h4>Eficiencia Final:</h4>
+                            <p><strong>Eficiencia = (R × 100) / Referencia</strong></p>
+                        </div>
+
+                        <h3 style="margin-bottom: 1rem; margin-top: 1.5rem; color: var(--primary-color);">📐 Interpretación Física</h3>
+                        <div class="info-box">
+                            <p><strong>Factor R representa:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>La fracción de calor disipada</li>
+                                <li>Eficiencia del intercambio térmico</li>
+                                <li>Capacidad de transferencia de calor</li>
+                            </ul>
+                            
+                            <p><strong>Límites físicos:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>R = 0: Sin transferencia de calor</li>
+                                <li>R = 1: Máxima eficiencia teórica</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color);">⚖️ Factores que Afectan la Eficiencia</h3>
+                        <div class="info-box">
+                            <p><strong>Factores de Diseño:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Área superficial de intercambio</li>
+                                <li>Material de construcción</li>
+                                <li>Diseño de tubos y aletas</li>
+                                <li>Velocidad del flujo de aire</li>
+                            </ul>
+                            
+                            <p><strong>Factores Operativos:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Velocidad del ventilador</li>
+                                <li>Flujo de refrigerante</li>
+                                <li>Estado de limpieza</li>
+                                <li>Calidad del refrigerante</li>
+                            </ul>
+                        </div>
+
+                        <h3 style="margin-bottom: 1rem; margin-top: 1.5rem; color: var(--primary-color);">🧪 Ejemplo Práctico</h3>
+                        <div class="info-box">
+                            <p><strong>Datos de ejemplo:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Tif = 95°C, Tsf = 85°C, Ta = 25°C</li>
+                                <li>Cilindros = 4, Año = 2015 → Referencia = 40%</li>
+                            </ul>
+                            
+                            <p><strong>Cálculo:</strong></p>
+                            <pre style="background: #f4f4f4; padding: 0.5rem; border-radius: 5px; margin-top: 0.5rem;">
+R = (95 - 85) / (95 - 25) = 10 / 70 = 0.1429
+R_porcentaje = 0.1429 × 100 = 14.29%
+Eficiencia = (14.29 × 100) / 40 = 35.73%</pre>
+                            
+                            <p><strong>Interpretación:</strong> Eficiencia baja, requiere mantenimiento.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pestaña Referencias -->
+            <div id="references" class="tab-content">
+                <h2 class="section-title">Fuentes Bibliográficas y Créditos</h2>
+                
+                <div class="two-columns">
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color);">📚 Referencias Técnicas</h3>
+                        <div class="info-box">
+                            <p><strong>Principios Termodinámicos:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Incropera, F. P. - <em>Fundamentals of Heat and Mass Transfer</em></li>
+                                <li>Kays, W. M. - <em>Compact Heat Exchangers</em></li>
+                                <li>Heywood, J. B. - <em>Internal Combustion Engine Fundamentals</em></li>
+                            </ul>
+                            
+                            <p><strong>Ingeniería Automotriz:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Society of Automotive Engineers (SAE) Standards</li>
+                                <li>Bosch Automotive Handbook</li>
+                                <li>Automotive Engineering International</li>
+                            </ul>
+                        </div>
+
+                        <h3 style="margin-bottom: 1rem; margin-top: 1.5rem; color: var(--primary-color);">🔧 Metodología</h3>
+                        <div class="info-box">
+                            <p><strong>Base de Datos Histórica:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Datos recopilados de especificaciones técnicas</li>
+                                <li>Evolución tecnológica por década</li>
+                                <li>Estándares de la industria automotriz</li>
+                            </ul>
+                            
+                            <p><strong>Validación Experimental:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Comparativa con datos empíricos</li>
+                                <li>Métodos estándar de la industria</li>
+                                <li>Ajuste por condiciones operativas</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color);">👥 Desarrollo y Créditos</h3>
+                        <div class="info-box">
+                            <p><strong>Equipo de Desarrollo:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Juan Manuel Navarro Maldonado</li>
+                                <li>Ernesto Iván Cervantes Reyes</li>
+                                <li>Isaac Uriel Ramirez Bueno</li>
+                                <li>Vanesa Chaves Lopez</li>
+                            </ul>
+                            
+                            <p><strong>Para la materia:</strong> Termodinámica</p>
+                            <p><strong>Lema del equipo:</strong> <em>"Indivisa Manend"</em></p>
+                        </div>
+
+                        <h3 style="margin-bottom: 1rem; margin-top: 1.5rem; color: var(--primary-color);">🌐 Tecnologías Utilizadas</h3>
+                        <div class="info-box">
+                            <p><strong>Frontend:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>HTML5, CSS3, JavaScript ES6+</li>
+                                <li>Plotly.js para visualizaciones</li>
+                                <li>Diseño responsive</li>
+                            </ul>
+                            
+                            <p><strong>Principios Científicos:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Termodinámica aplicada</li>
+                                <li>Transferencia de calor</li>
+                                <li>Ingeniería automotriz</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-box" style="margin-top: 1.5rem;">
+                            <p><strong>🔍 Para consultas técnicas:</strong></p>
+                            <p>Email: equipo.termo@ejemplo.com</p>
+                            <p>Versión: 1.0 - Página Web</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Calculadora de Eficiencia de Radiadores - Desarrollado para Termodinámica</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Herramienta educativa basada en principios científicos establecidos</p>
+        </div>
+    </div>
+
+    <script>
+        // Datos de referencia
+        const referencias = {
+            1960: {4: 25.0, 6: 40.0, 8: 35.0},
+            1970: {4: 30.0, 6: 45.0, 8: 25.0},
+            1980: {4: 50.0, 6: 30.0, 8: 20.0},
+            1990: {4: 60.0, 6: 25.0, 8: 15.0},
+            2000: {4: 65.0, 6: 20.0, 8: 15.0},
+            2010: {4: 40.0, 6: 47.5, 8: 57.5}
+        };
+
+        // Función para cambiar pestañas
+        function switchTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(tabName).classList.add('active');
+            
+            // Actualizar botones de pestañas
+            document.querySelectorAll('.tab').forEach(button => {
+                button.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Función para obtener referencia
+        function getReferencia(cilindros, anio) {
+            if (anio < 1960) return null;
+            
+            let decada;
+            if (1960 <= anio && anio <= 1969) decada = 1960;
+            else if (1970 <= anio && anio <= 1979) decada = 1970;
+            else if (1980 <= anio && anio <= 1989) decada = 1980;
+            else if (1990 <= anio && anio <= 1999) decada = 1990;
+            else if (2000 <= anio && anio <= 2009) decada = 2000;
+            else decada = 2010;
+            
+            return referencias[decada]?.[cilindros] || null;
+        }
+
+        // Función principal de cálculo
+        function calcularEficiencia() {
+            // Obtener valores de entrada
+            const cilindros = parseInt(document.getElementById('cilindros').value);
+            const anio = parseInt(document.getElementById('anio').value);
+            const Ta = parseFloat(document.getElementById('ta').value);
+            const Tif = parseFloat(document.getElementById('tif').value);
+            const Tsf = parseFloat(document.getElementById('tsf').value);
+            
+            // Validaciones
+            if (Tif <= Tsf) {
+                alert('❌ Error: La temperatura de entrada (Tif) debe ser mayor que la temperatura de salida (Tsf)');
+                return;
+            }
+            
+            if (Tif <= Ta) {
+                alert('❌ Error: La temperatura de entrada (Tif) debe ser mayor que la temperatura ambiente (Ta)');
+                return;
+            }
+            
+            // Calcular factor R
+            const R = (Tif - Tsf) / (Tif - Ta);
+            const porcentajeR = R * 100;
+            
+            // Obtener referencia
+            const referencia = getReferencia(cilindros, anio);
+            if (referencia === null) {
+                alert('❌ Error: No hay datos de referencia para esa combinación de cilindros y año');
+                return;
+            }
+            
+            // Calcular eficiencia final
+            const eficiencia = (porcentajeR * 100) / referencia;
+            
+            // Mostrar resultados
+            mostrarResultados(eficiencia, referencia, R, {cilindros, anio, Ta, Tif, Tsf});
+            
+            // Cambiar a pestaña de resultados
+            switchTab('results');
+        }
+
+        // Función para mostrar resultados
+        function mostrarResultados(eficiencia, referencia, factorR, datos) {
+            // Ocultar placeholder y mostrar contenido
+            document.getElementById('results-placeholder').style.display = 'none';
+            document.getElementById('results-content').style.display = 'block';
+            
+            // Actualizar métricas
+            document.getElementById('eficiencia-value').textContent = eficiencia.toFixed(2) + '%';
+            document.getElementById('referencia-value').textContent = referencia.toFixed(1) + '%';
+            
+            const diferencia = eficiencia - referencia;
+            const diferenciaElement = document.getElementById('diferencia-value');
+            diferenciaElement.textContent = (diferencia > 0 ? '+' : '') + diferencia.toFixed(2) + '%';
+            
+            // Crear gráfico de gauge
+            crearGaugeChart(eficiencia, referencia);
+            
+            // Crear gráfico de temperaturas
+            crearTemperatureChart(datos.Ta, datos.Tif, datos.Tsf);
+            
+            // Mostrar diagnóstico
+            mostrarDiagnostico(eficiencia, referencia);
+            
+            // Mostrar detalles del cálculo
+            mostrarDetallesCalculo(datos, factorR, eficiencia, referencia);
+            
+            // Mostrar recomendaciones
+            mostrarRecomendaciones(eficiencia, referencia);
+        }
+
+        // Función para crear gráfico de gauge
+        function crearGaugeChart(eficiencia, referencia) {
+            const data = [
+                {
+                    type: "indicator",
+                    mode: "gauge+number+delta",
+                    value: eficiencia,
+                    delta: { reference: referencia },
+                    gauge: {
+                        axis: { range: [null, 100] },
+                        bar: { color: "darkblue" },
+                        steps: [
+                            { range: [0, referencia], color: "lightgray" },
+                            { range: [referencia, 85], color: "yellow" },
+                            { range: [85, 100], color: "green" }
+                        ],
+                        threshold: {
+                            line: { color: "red", width: 4 },
+                            thickness: 0.75,
+                            value: referencia
+                        }
+                    }
+                }
+            ];
+            
+            const layout = {
+                title: "Eficiencia del Radiador (%)",
+                height: 300
+            };
+            
+            Plotly.newPlot('gauge-chart', data, layout, {responsive: true});
+        }
+
+        // Función para crear gráfico de temperaturas
+        function crearTemperatureChart(Ta, Tif, Tsf) {
+            const data = [
+                {
+                    x: ['Ambiente (Ta)', 'Entrada (Tif)', 'Salida (Tsf)'],
+                    y: [Ta, Tif, Tsf],
+                    type: 'bar',
+                    marker: {
+                        color: ['#4facfe', '#ff7f0e', '#2ca02c']
+                    }
+                }
+            ];
+            
+            const layout = {
+                title: 'Distribución de Temperaturas',
+                yaxis: { title: 'Temperatura (°C)' },
+                height: 300
+            };
+            
+            Plotly.newPlot('temperature-chart', data, layout, {responsive: true});
+        }
+
+        // Función para mostrar diagnóstico
+        function mostrarDiagnostico(eficiencia, referencia) {
+            const alertElement = document.getElementById('diagnostico-alert');
+            
+            if (eficiencia >= 85) {
+                alertElement.className = 'alert alert-success';
+                alertElement.innerHTML = `
+                    <h3>✅ EXCELENTE - Eficiencia Óptima</h3>
+                    <p><strong>Interpretación:</strong> El radiador funciona de manera óptima y eficiente.</p>
+                    <p><strong>Recomendación:</strong> Continuar con el mantenimiento preventivo regular.</p>
+                `;
+            } else if (eficiencia >= referencia) {
+                alertElement.className = 'alert alert-info';
+                alertElement.innerHTML = `
+                    <h3>📊 ACEPTABLE - Dentro de los Límites</h3>
+                    <p><strong>Interpretación:</strong> El radiador cumple con los estándares mínimos (${referencia}%).</p>
+                    <p><strong>Recomendación:</strong> Mantenimiento preventivo recomendado en el próximo servicio.</p>
+                `;
+            } else {
+                alertElement.className = 'alert alert-warning';
+                alertElement.innerHTML = `
+                    <h3>⚠️ PRECAUCIÓN - Eficiencia Baja</h3>
+                    <p><strong>Interpretación:</strong> El radiador no está funcionando correctamente (por debajo del ${referencia}% requerido).</p>
+                    <p><strong>Recomendación:</strong> Mantenimiento correctivo inmediato necesario.</p>
+                `;
+            }
+        }
+
+        // Función para mostrar detalles del cálculo
+        function mostrarDetallesCalculo(datos, factorR, eficiencia, referencia) {
+            const deltaT = datos.Tif - datos.Tsf;
+            
+            document.getElementById('detalles-calculo').innerHTML = `
+                <p><strong>Parámetros de Entrada:</strong></p>
+                <ul>
+                    <li>Cilindros: ${datos.cilindros}</li>
+                    <li>Año: ${datos.anio}</li>
+                    <li>Temperatura ambiente: ${datos.Ta} °C</li>
+                    <li>Temperatura entrada: ${datos.Tif} °C</li>
+                    <li>Temperatura salida: ${datos.Tsf} °C</li>
+                </ul>
+                
+                <p><strong>Cálculos Intermedios:</strong></p>
+                <ul>
+                    <li>ΔT refrigerante: ${deltaT.toFixed(1)} °C</li>
+                    <li>Factor R: ${factorR.toFixed(3)}</li>
+                    <li>Eficiencia base: ${(factorR * 100).toFixed(1)}%</li>
+                    <li>Referencia aplicada: ${referencia}%</li>
+                </ul>
+            `;
+        }
+
+        // Función para mostrar recomendaciones
+        function mostrarRecomendaciones(eficiencia, referencia) {
+            let recomendacionesHTML = '';
+            
+            if (eficiencia < referencia) {
+                recomendacionesHTML = `
+                    <p><strong>🔄 Mantenimiento Urgente Requerido:</strong></p>
+                    <ol>
+                        <li>Limpieza externa del radiador</li>
+                        <li>Limpieza interna del sistema</li>
+                        <li>Verificación del termostato</li>
+                        <li>Revisión del ventilador</li>
+                        <li>Cambio de líquido refrigerante</li>
+                        <li>Inspección de mangueras y conexiones</li>
+                    </ol>
+                `;
+            } else {
+                recomendacionesHTML = `
+                    <p><strong>🔧 Mantenimiento Preventivo:</strong></p>
+                    
+                    <p><strong>Corto Plazo (3 meses):</strong></p>
+                    <ul>
+                        <li>Revisar nivel de refrigerante</li>
+                        <li>Limpieza externa del radiador</li>
+                        <li>Inspección visual de mangueras</li>
+                    </ul>
+                    
+                    <p><strong>Largo Plazo (12 meses):</strong></p>
+                    <ul>
+                        <li>Cambio de refrigerante</li>
+                        <li>Limpieza interna completa</li>
+                        <li>Verificación de presión del sistema</li>
+                        <li>Revisión del termostato</li>
+                    </ul>
+                `;
+            }
+            
+            document.getElementById('recomendaciones').innerHTML = recomendacionesHTML;
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuración inicial
+            console.log('🚗 Calculadora de Eficiencia de Radiadores - Lista');
+        });
+    </script>
+</body>
+</html>
